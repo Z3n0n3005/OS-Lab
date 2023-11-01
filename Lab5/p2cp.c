@@ -4,17 +4,20 @@
 #include <semaphore.h>
 
 #define BUFFER_SIZE 10
+#define MAX_ITEMS 5
 
 // Global variables
 int buffer[BUFFER_SIZE];
 int read_index = 0;
 int write_index = 0;
+int produced_count = 0;
+int consumed_count = 0;
 sem_t empty;
 sem_t full;
 
 // Producer function
 void *producer(void *arg) {
-    while (1) {
+    while (produced_count < MAX_ITEMS) {
         // Wait for the buffer to have empty slots
         sem_wait(&empty);
 
@@ -22,15 +25,17 @@ void *producer(void *arg) {
         int item = rand();
         buffer[write_index] = item;
         write_index = (write_index + 1) % BUFFER_SIZE;
-
+        produced_count++;
         // Signal that the buffer has a full slot
         sem_post(&full);
+
+        printf("Produced: %d\n", item)
     }
 }
 
 // Consumer function
 void *consumer(void *arg) {
-    while (1) {
+    while (consumed_count < MAX_ITEMS) {
         // Wait for the buffer to have full slots
         sem_wait(&full);
 
@@ -38,6 +43,7 @@ void *consumer(void *arg) {
         int item = buffer[read_index];
         read_index = (read_index + 1) % BUFFER_SIZE;
 
+        consumed_count++;
         // Signal that the buffer has an empty slot
         sem_post(&empty);
 
