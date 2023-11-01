@@ -28,7 +28,7 @@ void *producer(void *arg) {
         int item = rand() % 100 + 1;
         buffer[write_index] = item;
         write_index = (write_index + 1) % BUFFER_SIZE;
-	sleep(rand() % 5 + 1);
+	    sleep(rand() % 5 + 1);
         produced_count++;
         // Signal that the buffer has a full slot
         sem_post(&mutex);
@@ -53,7 +53,7 @@ void *consumer(void *arg) {
         // Consume an integer from the buffer
         int item = buffer[read_index];
         read_index = (read_index + 1) % BUFFER_SIZE;
-	sleep(rand() % 5 +1 );
+	    sleep(rand() % 5 +1 );
 
         consumed_count++;
         // Signal that the buffer has an empty slot
