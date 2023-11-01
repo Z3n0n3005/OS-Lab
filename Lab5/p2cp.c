@@ -29,7 +29,7 @@ void *producer(void *arg) {
         // Signal that the buffer has a full slot
         sem_post(&full);
 
-        printf("Produced: %d\n", item)
+        printf("Produced: %d\n", item);
     }
 }
 
