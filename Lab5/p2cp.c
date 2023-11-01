@@ -12,6 +12,7 @@ int read_index = 0;
 int write_index = 0;
 int produced_count = 0;
 int consumed_count = 0;
+sem_t mutex;
 sem_t empty;
 sem_t full;
 
@@ -20,6 +21,7 @@ void *producer(void *arg) {
     while (produced_count < MAX_ITEMS) {
         // Wait for the buffer to have empty slots
         sem_wait(&empty);
+        sem_wait(&mutex);
 
         // Produce an integer and place it in the buffer
         int item = rand();
@@ -27,10 +29,12 @@ void *producer(void *arg) {
         write_index = (write_index + 1) % BUFFER_SIZE;
         produced_count++;
         // Signal that the buffer has a full slot
+        sem_post(&mutex);
         sem_post(&full);
 
         printf("Produced: %d\n", item);
     }
+    pthread_exit(NULL);
 }
 
 // Consumer function
@@ -38,24 +42,27 @@ void *consumer(void *arg) {
     while (consumed_count < MAX_ITEMS) {
         // Wait for the buffer to have full slots
         sem_wait(&full);
-
+        sem_wait(&mutex);
         // Consume an integer from the buffer
         int item = buffer[read_index];
         read_index = (read_index + 1) % BUFFER_SIZE;
 
         consumed_count++;
         // Signal that the buffer has an empty slot
+        sem_post(&mutex);
         sem_post(&empty);
 
         // Consume the integer
         printf("Consumed: %d\n", item);
     }
+    pthread_exit(NULL);
 }
 
 int main() {
     // Initialize the semaphores
     sem_init(&empty, 0, BUFFER_SIZE);
     sem_init(&full, 0, 0);
+    sem_init(&mutex, 0, 1);
 
     // Create the producer and consumer threads
     pthread_t producer_thread;
@@ -70,5 +77,8 @@ int main() {
     pthread_join(consumer_thread1, NULL);
     pthread_join(consumer_thread2, NULL);
 
+    sem_destroy(&mutex);
+    sem_destroy(&empty);
+    sem_destroy(&full);
     return 0;
 }
