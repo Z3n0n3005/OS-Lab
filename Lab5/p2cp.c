@@ -12,6 +12,7 @@ int read_index = 0;
 int write_index = 0;
 int produced_count = 0;
 int consumed_count = 0;
+int consumer_id = 0;
 sem_t mutex;
 sem_t empty;
 sem_t full;
@@ -39,6 +40,7 @@ void *producer(void *arg) {
 
 // Consumer function
 void *consumer(void *arg) {
+    int consumer = consumer_id;
     while (consumed_count < MAX_ITEMS) {
         // Wait for the buffer to have full slots
         sem_wait(&full);
@@ -53,7 +55,7 @@ void *consumer(void *arg) {
         sem_post(&empty);
 
         // Consume the integer
-        printf("Consumed: %d\n", item);
+        printf("%d Consumed: %d\n", consumer, item);
     }
     pthread_exit(NULL);
 }
@@ -70,6 +72,7 @@ int main() {
     pthread_t consumer_thread2;
     pthread_create(&producer_thread, NULL, producer, NULL);
     pthread_create(&consumer_thread1, NULL, consumer, NULL);
+    consumer_id++;
     pthread_create(&consumer_thread2, NULL, consumer, NULL);
 
     // Join the threads
