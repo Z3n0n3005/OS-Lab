@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <vector>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -20,7 +21,7 @@ struct thread_info{
 	pthread_t thread_id;
 	int thread_num;
 	char *argv;
-}
+};
 
 bool isPerfectSquare(int num){
 	int squareRoot = sqrt(num);
@@ -31,19 +32,17 @@ bool isFibonacci(int num){
 	return isPerfectSquare(5*num*num + 4) || isPerfectSquare(5*num*num - 4);
 }
 
-void* thread_f_1(void* arg){
-
-	for(int i = 1; i < argc; i++){
+void* checkFibonnaciThread(void* arg){
+    int number = *((int*)arg);
 		//char c = argv[i];
-		if(isalpha(argv[i][0])){
-			inputChar();
-		} else if(isFibonacci(atoi(argv[i]))){
-			printf("%d : %s is a Fibonacci number \n", i, argv[i]);
-		} else {
-			printf("%d : %s is not a Fibonacci number \n", i, argv[i]);
-		}
-	}
-	pthread_exit(n);
+    if(isalpha(number)){
+        inputChar();
+    } else if(isFibonacci(number)){
+        printf("%d is a Fibonacci number \n", number);
+    } else {
+        printf("%d is not a Fibonacci number \n", number);
+    }
+	pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[]){
@@ -55,9 +54,25 @@ int main(int argc, char* argv[]){
 		return 0;
 	} 
 
-	pthread_t thread1;
-	for(int tnum = 0; tnum < argc; tnum++){
-		
-	pthread_join(thread_1, NULL);
+    std::vector<int> numbers;
+
+    for(int i = 1; i < argc; i++){
+        int number = atoi(argv[i]);
+        numbers.push_back(number);
+    }
+
+	pthread_t threads[numbers.size()];
+	for(int tnum = 0; tnum < numbers.size(); tnum++){
+       int* arg = new int(numbers[tnum]);
+       int status = pthread_create(&threads[tnum], NULL, checkFibonnaciThread, (void*)arg);
+        if(status){
+            printf("Error creating thread %d", tnum);
+            return 1;
+        }
+    }	
+
+    for(int tnum = 0; tnum < numbers.size(); tnum++){
+        pthread_join(threads[tnum], NULL);
+    }
 	return 1;
 }
